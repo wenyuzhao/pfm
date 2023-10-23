@@ -2,7 +2,7 @@ use super::util::pfm_err_description;
 use libc::{c_int, c_longlong, c_void, read, pid_t};
 use perf_event_open_sys::{ioctls, perf_event_open};
 use pfm_sys::{
-    perf_event_attr, perf_event_read_format, pfm_get_perf_event_encoding, PFM_PLM3, PFM_SUCCESS,
+    perf_event_attr, perf_event_read_format, pfm_get_perf_event_encoding, PFM_PLM0, PFM_PLM3, PFM_PLMH, PFM_SUCCESS,
 };
 use std::ffi::CString;
 use std::mem::MaybeUninit;
@@ -27,7 +27,11 @@ impl PerfEvent {
         let errno = unsafe {
             pfm_get_perf_event_encoding(
                 cstring.as_ptr(),
-                PFM_PLM3,
+                if cfg!(feature = "plm0") {
+                    PFM_PLM0 | PFM_PLM3 | PFM_PLMH
+                } else {
+                    PFM_PLM3
+                },
                 &mut pe,
                 std::ptr::null_mut(),
                 std::ptr::null_mut(),
